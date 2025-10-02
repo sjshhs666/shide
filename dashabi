@@ -1,0 +1,243 @@
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/9kn-1/LocalredzzUi/refs/heads/main/Redz.txt"))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "飞天剑云制作，完全免费",
+    SubTitle = "FTJY"
+})
+
+local MainTab = Window:MakeTab({
+    Title = "主要",
+    Icon = "rbxassetid://4483345998" 
+})
+
+local SettingsTab = Window:MakeTab({
+    Title = "设置",
+    Icon = "settings"
+})
+
+local NoclipEnabled = false
+local InfiniteJumpEnabled = false
+local NoclipConnection
+local JumpConnection
+
+local function NoclipLoop()
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+    end
+    
+    NoclipConnection = game:GetService("RunService").Stepped:Connect(function()
+        if NoclipEnabled and game.Players.LocalPlayer.Character then
+            for _, child in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                if child:IsA("BasePart") and child.CanCollide then
+                    child.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+local function EnableInfiniteJump()
+    if JumpConnection then
+        JumpConnection:Disconnect()
+    end
+    
+    JumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+        if InfiniteJumpEnabled and game.Players.LocalPlayer.Character then
+            local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid:ChangeState("Jumping")
+            end
+        end
+    end)
+end
+
+MainTab:AddSection("移动功能")
+
+MainTab:AddToggle({
+    Name = "穿墙模式",
+    Description = "允许穿过墙壁和物体",
+    Default = false,
+    Callback = function(value)
+        NoclipEnabled = value
+        if value then
+            NoclipLoop()
+            OrionLib:MakeNotification({
+                Name = "穿墙已启用",
+                Content = "你现在可以穿过墙壁了",
+                Time = 3
+            })
+        else
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+            end
+            OrionLib:MakeNotification({
+                Name = "穿墙已禁用",
+                Content = "碰撞检测已恢复",
+                Time = 3
+            })
+        end
+    end
+})
+
+MainTab:AddToggle({
+    Name = "无限跳跃",
+    Description = "在空中也能无限跳跃",
+    Default = false,
+    Callback = function(value)
+        InfiniteJumpEnabled = value
+        if value then
+            EnableInfiniteJump()
+            OrionLib:MakeNotification({
+                Name = "无限跳跃已启用",
+                Content = "按空格键在空中跳跃",
+                Time = 3
+            })
+        else
+            if JumpConnection then
+                JumpConnection:Disconnect()
+            end
+            OrionLib:MakeNotification({
+                Name = "无限跳跃已禁用",
+                Content = "跳跃功能恢复正常",
+                Time = 3
+            })
+        end
+    end
+})
+
+MainTab:AddButton({
+    Name = "一键开启所有移动功能",
+    Description = "同时启用穿墙和无限跳跃",
+    Callback = function()
+        NoclipEnabled = true
+        NoclipLoop()
+        
+        InfiniteJumpEnabled = true
+        EnableInfiniteJump()
+        
+        OrionLib:MakeNotification({
+            Name = "所有移动功能已启用",
+            Content = "穿墙和无限跳跃已激活",
+            Time = 3
+        })
+    end
+})
+
+MainTab:AddButton({
+    Name = "一键关闭所有移动功能",
+    Description = "同时禁用穿墙和无限跳跃",
+    Callback = function()
+        NoclipEnabled = false
+        if NoclipConnection then
+            NoclipConnection:Disconnect()
+        end
+        
+        InfiniteJumpEnabled = false
+        if JumpConnection then
+            JumpConnection:Disconnect()
+        end
+        
+        OrionLib:MakeNotification({
+            Name = "所有移动功能已禁用",
+            Content = "穿墙和无限跳跃已关闭",
+            Time = 3
+        })
+    end
+})
+
+MainTab:AddSection("其他功能")
+
+MainTab:AddButton({
+    Name = "刷新角色",
+    Description = "重新生成你的角色",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        if player.Character then
+            player.Character:BreakJoints()
+        end
+    end
+})
+
+SettingsTab:AddSection("配置")
+
+SettingsTab:AddSlider({
+    Name = "UI透明度",
+    Description = "调整界面透明度",
+    MinValue = 0,
+    MaxValue = 100,
+    Default = 50,
+    Callback = function(value)
+ 
+               OrionLib:MakeNotification({
+            Name = "透明度已设置",
+            Content = "UI透明度: " .. tostring(value),
+            Time = 2
+        })
+    end
+})
+
+SettingsTab:AddDropdown({
+    Name = "主题颜色",
+    Description = "选择UI主题颜色",
+    Options = {"默认", "红色", "蓝色", "绿色", "紫色"},
+    Default = "默认",
+    Callback = function(selected)
+        OrionLib:MakeNotification({
+            Name = "主题已更改",
+            Content = "当前主题: " .. selected,
+            Time = 2
+        })
+    end
+})
+
+SettingsTab:AddTextBox({
+    Name = "速度修改",
+    Description = "输入行走速度 (默认16)",
+    PlaceholderText = "16",
+    Callback = function(text)
+        local speed = tonumber(text)
+        if speed and game.Players.LocalPlayer.Character then
+            local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = speed
+                OrionLib:MakeNotification({
+                    Name = "速度已修改",
+                    Content = "行走速度: " .. tostring(speed),
+                    Time = 3
+                })
+            end
+        end
+    end
+})
+
+SettingsTab:AddSection("信息")
+
+SettingsTab:AddButton({
+    Name = "显示玩家信息",
+    Description = "显示当前玩家信息",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        OrionLib:MakeNotification({
+            Name = "玩家信息",
+            Content = "名称: " .. player.Name .. " | 账户年龄: " .. tostring(player.AccountAge) .. "天",
+            Time = 5
+        })
+    end
+})
+
+OrionLib:MakeNotification({
+    Name = "Ogio加载完成",
+    Content = "穿墙和无限跳跃功能已就绪",
+    Time = 3
+})
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    if NoclipEnabled then
+        wait(1) 
+        NoclipLoop()
+    end
+    if InfiniteJumpEnabled then
+        wait(1)
+        EnableInfiniteJump()
+    end
+end)
